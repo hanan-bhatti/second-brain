@@ -78,9 +78,10 @@ fun AuthScreen(
             TopAppBar(
                 title = { Text("Cloud Sync Settings", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack, modifier = Modifier.testTag("auth_back_button")) {
-                        Icon(painter = painterResource(id = R.drawable.ic_custom_back), contentDescription = "Go back")
-                    }
+                    com.example.ui.components.CustomBackButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.testTag("auth_back_button")
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
