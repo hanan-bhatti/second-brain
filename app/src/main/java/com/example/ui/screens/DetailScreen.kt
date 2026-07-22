@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import com.example.ui.components.bounceClick
 import com.example.ui.components.MarkdownText
+import com.example.utils.parseMarkdown
+import com.example.utils.DateTimeUtils
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
@@ -144,8 +146,7 @@ fun DetailScreen(
     var showLeaveAppDialog by remember { mutableStateOf(false) }
     var urlToOpen by remember { mutableStateOf("") }
 
-    val formatter = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()) }
-    val formattedDate = formatter.format(Date(item.timestamp))
+    val formattedDate = DateTimeUtils.formatLongDate(item.timestamp)
 
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }

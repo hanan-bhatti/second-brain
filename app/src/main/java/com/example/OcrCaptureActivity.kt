@@ -18,6 +18,7 @@
 
 package com.example
 import com.example.R
+import com.example.utils.parseMarkdown
 import androidx.compose.ui.res.painterResource
 
 import android.app.Activity
@@ -531,7 +532,7 @@ class OcrCaptureActivity : ComponentActivity(), ScreenCaptureService.CaptureCall
                                                 ) {
                                                     Column(modifier = Modifier.padding(16.dp)) {
                                                         Text(
-                                                            text = com.example.ui.screens.parseMarkdown(
+                                                            text = parseMarkdown(
                                                                 activeItem?.extractedText ?: "",
                                                                 MaterialTheme.colorScheme.primary
                                                             ),

@@ -63,6 +63,7 @@ import java.util.Date
 import com.example.R
 import com.example.data.model.SavedItem
 import com.example.data.model.getBestImagePath
+import com.example.utils.DateTimeUtils
 import com.example.ui.components.MarkdownText
 import com.example.ui.components.VideoPlayer
 import com.example.ui.theme.*
@@ -97,8 +98,7 @@ fun MediaDetailSection(
     val posterPath = remember(item) { item.getBestImagePath() ?: item.thumbnailPath }
     val backdropImage = remember(item) { item.backdropUrl?.takeIf { it.isNotBlank() } ?: posterPath }
     val formattedDate = remember(item.timestamp) {
-        val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        sdf.format(Date(item.timestamp))
+        DateTimeUtils.formatSimpleDate(item.timestamp)
     }
 
     Column(

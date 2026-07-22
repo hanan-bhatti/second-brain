@@ -17,15 +17,30 @@
  */
 
 package com.example.ui.components
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.material3.Text
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.example.R
 
-@androidx.compose.material3.ExperimentalMaterial3Api
+/**
+ * Reusable back button component with unified back icon and accessible content description.
+ */
 @Composable
-fun TestPull() {
-    PullToRefreshBox(isRefreshing = false, onRefresh = {}) {
-        Text("Hello")
+fun CustomBackButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    contentDescription: String = "Back"
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_custom_back),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp)
+        )
     }
 }

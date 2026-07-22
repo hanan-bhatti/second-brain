@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.bounceClick
 import com.example.ui.components.MarkdownText
+import com.example.utils.MarkdownVisualTransformation
 
 @Composable
 fun RichTextEditor(

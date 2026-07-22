@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.ui.components.CustomBackButton
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.SecondBrainViewModel
 import com.example.widget.QuickCaptureWidgetReceiver
@@ -94,15 +95,7 @@ fun WidgetSettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Widget Customization", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_custom_back),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+                navigationIcon = { CustomBackButton(onClick = onNavigateBack) },
                 actions = {
                     IconButton(
                         onClick = {

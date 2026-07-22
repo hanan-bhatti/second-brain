@@ -18,6 +18,8 @@
 
 package com.example.ui.screens
 
+import com.example.utils.parseMarkdown
+import com.example.utils.DateTimeUtils
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -179,7 +181,7 @@ fun ArchiveItemCard(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     val formattedDate = remember(item.timestamp) {
-                        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(item.timestamp))
+                        DateTimeUtils.formatSimpleDate(item.timestamp)
                     }
                     Text(
                         text = formattedDate,
@@ -664,7 +666,7 @@ fun ArchiveItemRow(
                             letterSpacing = 1.sp
                         )
                         val formattedDate = remember(item.timestamp) {
-                            SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(item.timestamp))
+                            DateTimeUtils.formatShortDate(item.timestamp)
                         }
                         Text(
                             text = formattedDate,

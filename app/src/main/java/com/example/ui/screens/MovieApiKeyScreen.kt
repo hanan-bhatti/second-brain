@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.R
+import com.example.ui.components.CustomBackButton
 import com.example.ui.components.bounceClick
 import com.example.ui.viewmodel.SecondBrainViewModel
 import dev.chrisbanes.haze.HazeState
@@ -82,15 +83,7 @@ fun MovieApiKeyScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Movie & TV Integration", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_custom_back),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+                navigationIcon = { CustomBackButton(onClick = onNavigateBack) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (useBlur) Color.Transparent else MaterialTheme.colorScheme.background,
                     scrolledContainerColor = if (useBlur) Color.Transparent else MaterialTheme.colorScheme.background

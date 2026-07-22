@@ -65,6 +65,7 @@ import com.example.data.model.SavedItem
 import com.example.data.model.SavedItemType
 import com.example.data.model.getBestImagePath
 import com.example.utils.AnalyticsHelper
+import com.example.utils.DateTimeUtils
 import com.example.ui.viewmodel.SecondBrainViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -616,10 +617,7 @@ fun formatRelativeTime(timestamp: Long): String {
         days == 0L -> "${hours}h ago"
         days == 1L -> "Yesterday"
         days < 7L -> "${days}d ago"
-        else -> {
-            val sdf = SimpleDateFormat("MMM d", Locale.getDefault())
-            sdf.format(Date(timestamp))
-        }
+        else -> DateTimeUtils.formatShortDate(timestamp)
     }
 }
 

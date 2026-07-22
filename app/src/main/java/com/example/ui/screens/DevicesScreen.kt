@@ -44,7 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.model.DeviceSession
+import com.example.ui.components.CustomBackButton
 import com.example.ui.viewmodel.SecondBrainViewModel
+import com.example.utils.DateTimeUtils
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import dev.chrisbanes.haze.HazeState
@@ -98,15 +100,7 @@ fun DevicesScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Devices", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_custom_back),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+                navigationIcon = { CustomBackButton(onClick = onNavigateBack) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (useBlur) Color.Transparent else MaterialTheme.colorScheme.background
                 ),
@@ -260,7 +254,7 @@ fun DeviceSessionRow(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isCurrentDevice) "Active now" else getRelativeTimeSpanString(session.lastActive),
+                            text = if (isCurrentDevice) "Active now" else DateTimeUtils.getRelativeTimeSpanString(session.lastActive),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -293,8 +287,8 @@ fun DeviceSessionRow(
                     DeviceDetailItem(label = "Device Type", value = session.deviceType)
                     DeviceDetailItem(label = "OS Version", value = session.osVersion)
                     DeviceDetailItem(label = "App Version", value = session.appVersion)
-                    DeviceDetailItem(label = "First Connected", value = formatSimpleDate(session.firstSeen))
-                    DeviceDetailItem(label = "Last Active", value = formatFullDateTime(session.lastActive))
+                    DeviceDetailItem(label = "First Connected", value = DateTimeUtils.formatSimpleDate(session.firstSeen))
+                    DeviceDetailItem(label = "Last Active", value = DateTimeUtils.formatFullDateTime(session.lastActive))
                 }
             }
         }
@@ -320,32 +314,4 @@ fun DeviceDetailItem(label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurface
         )
     }
-}
-
-fun getRelativeTimeSpanString(time: Long): String {
-    val now = System.currentTimeMillis()
-    val diff = now - time
-    if (diff < 0) return "Active now"
-    val diffSeconds = diff / 1000
-    if (diffSeconds < 60) return "Active now"
-    val diffMinutes = diffSeconds / 60
-    if (diffMinutes < 60) return "$diffMinutes ${if (diffMinutes == 1L) "minute" else "minutes"} ago"
-    val diffHours = diffMinutes / 60
-    if (diffHours < 24) return "$diffHours ${if (diffHours == 1L) "hour" else "hours"} ago"
-    val diffDays = diffHours / 24
-    if (diffDays < 7) return "$diffDays ${if (diffDays == 1L) "day" else "days"} ago"
-    val diffWeeks = diffDays / 7
-    if (diffWeeks < 4) return "$diffWeeks ${if (diffWeeks == 1L) "week" else "weeks"} ago"
-    val diffMonths = diffDays / 30
-    return "$diffMonths ${if (diffMonths == 1L) "month" else "months"} ago"
-}
-
-fun formatFullDateTime(time: Long): String {
-    val sdf = SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault())
-    return sdf.format(Date(time))
-}
-
-fun formatSimpleDate(time: Long): String {
-    val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    return sdf.format(Date(time))
 }

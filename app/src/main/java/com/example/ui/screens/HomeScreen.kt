@@ -102,7 +102,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
