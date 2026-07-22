@@ -68,6 +68,7 @@ import com.example.ui.theme.ArchiveAudioColor
 import com.example.ui.theme.ArchiveMediaColor
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.ui.theme.toThemeColor
+import com.example.ui.components.parseHexColor
 
 private fun Any?.isNotNullOrBlank(): Boolean {
     return this != null && this.toString().isNotBlank()

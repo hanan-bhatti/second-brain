@@ -61,7 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.SavedItemType
-import com.example.ui.screens.ImageMarkingCanvas
+import com.example.ui.components.ImageMarkingCanvas
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.viewmodel.SecondBrainViewModel
 import kotlinx.coroutines.delay

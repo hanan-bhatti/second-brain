@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import com.example.ui.components.bounceClick
 import com.example.ui.components.AudioRecorderComponent
+import com.example.ui.components.ImageMarkingCanvas
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -1195,109 +1196,7 @@ fun CaptureScreen(
     }
 }
 
-@Composable
-fun ImageMarkingCanvas(
-    bitmap: Bitmap,
-    onRegionSelected: (x: Int, y: Int, width: Int, height: Int) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    var pathPoints by remember { mutableStateOf<List<Offset>>(emptyList()) }
-    var containerWidth by remember { mutableStateOf(0f) }
-    var containerHeight by remember { mutableStateOf(0f) }
 
-    val currentEnabled by androidx.compose.runtime.rememberUpdatedState(enabled)
-    val currentOnRegionSelected by androidx.compose.runtime.rememberUpdatedState(onRegionSelected)
-    val currentBitmap by androidx.compose.runtime.rememberUpdatedState(bitmap)
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(bitmap.width.toFloat() / bitmap.height.toFloat())
-            .onGloballyPositioned { coordinates ->
-                containerWidth = coordinates.size.width.toFloat()
-                containerHeight = coordinates.size.height.toFloat()
-            }
-            .pointerInput(bitmap) {
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        if (currentEnabled) {
-                            pathPoints = listOf(offset)
-                        }
-                    },
-                    onDrag = { change, _ ->
-                        if (currentEnabled) {
-                            change.consume()
-                            pathPoints = pathPoints + change.position
-                        }
-                    },
-                    onDragEnd = {
-                        if (currentEnabled && pathPoints.isNotEmpty() && containerWidth > 0 && containerHeight > 0) {
-                            val minX = pathPoints.minOf { it.x }.coerceIn(0f, containerWidth)
-                            val maxX = pathPoints.maxOf { it.x }.coerceIn(0f, containerWidth)
-                            val minY = pathPoints.minOf { it.y }.coerceIn(0f, containerHeight)
-                            val maxY = pathPoints.maxOf { it.y }.coerceIn(0f, containerHeight)
-
-                            // Map coordinates to original bitmap dimensions
-                            val scaleX = currentBitmap.width / containerWidth
-                            val scaleY = currentBitmap.height / containerHeight
-
-                            val cropX = (minX * scaleX).toInt()
-                            val cropY = (minY * scaleY).toInt()
-                            val cropWidth = ((maxX - minX) * scaleX).toInt()
-                            val cropHeight = ((maxY - minY) * scaleY).toInt()
-
-                            currentOnRegionSelected(cropX, cropY, cropWidth, cropHeight)
-                        }
-                    }
-                )
-            }
-    ) {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = "Shared visual asset",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
-
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            if (pathPoints.size > 1) {
-                val path = Path().apply {
-                    moveTo(pathPoints.first().x, pathPoints.first().y)
-                    for (i in 1 until pathPoints.size) {
-                        lineTo(pathPoints[i].x, pathPoints[i].y)
-                    }
-                }
-                // Light transparent primary freehand outline stroke
-                drawPath(
-                    path = path,
-                    color = primaryColor.copy(alpha = 0.6f),
-                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                )
-
-                val minX = pathPoints.minOf { it.x }
-                val maxX = pathPoints.maxOf { it.x }
-                val minY = pathPoints.minOf { it.y }
-                val maxY = pathPoints.maxOf { it.y }
-
-                // Draw a nice translucent region bounding rectangle box
-                drawRect(
-                    color = primaryColor.copy(alpha = 0.15f),
-                    topLeft = Offset(minX, minY),
-                    size = Size(maxX - minX, maxY - minY),
-                    style = Fill
-                )
-                drawRect(
-                    color = primaryColor,
-                    topLeft = Offset(minX, minY),
-                    size = Size(maxX - minX, maxY - minY),
-                    style = Stroke(width = 1.dp.toPx())
-                )
-            }
-        }
-    }
-}
 
 // FlowRow implementation (Since FlowRow wasn't included in early Compose, standard wrapping Row with horizontal scroll is perfect)
 @Composable
