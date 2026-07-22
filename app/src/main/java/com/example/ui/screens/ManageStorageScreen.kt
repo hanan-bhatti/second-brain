@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material3.*
@@ -50,6 +49,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.R
+import com.example.ui.components.CustomBackButton
+import com.example.utils.FormatUtils.formatStorageSize
 import java.util.Locale
 import coil.compose.AsyncImage
 import androidx.compose.animation.AnimatedVisibility
@@ -185,11 +186,7 @@ fun ManageStorageScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Manage Storage") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                navigationIcon = { CustomBackButton(onClick = onNavigateBack) }
             )
         },
         bottomBar = {
@@ -946,17 +943,5 @@ fun ManageStorageScreen(
                 }
             }
         )
-    }
-}
-
-private fun formatStorageSize(bytes: Long): String {
-    if (bytes <= 0L) return "0 B"
-    val kb = bytes / 1024f
-    val mb = kb / 1024f
-    val gb = mb / 1024f
-    return when {
-        gb >= 1.0f -> String.format(Locale.US, "%.1f GB", gb)
-        mb >= 1.0f -> String.format(Locale.US, "%.1f MB", mb)
-        else -> String.format(Locale.US, "%.1f KB", kb)
     }
 }

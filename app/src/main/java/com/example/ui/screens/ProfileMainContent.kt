@@ -51,6 +51,10 @@ import com.example.ui.viewmodel.SecondBrainViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.example.ui.components.bounceClick
+import com.example.ui.components.SectionContainer
+import com.example.ui.components.ArchiveStatRow
+import com.example.ui.components.ClickableRow
+import com.example.utils.FormatUtils.formatStorageSize
 import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -996,107 +1000,4 @@ fun ProfileMainContent(
     }
 }
 
-@Composable
-fun SectionContainer(title: String, content: @Composable () -> Unit) {
-    Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
-        )
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                content()
-            }
-        }
-    }
-}
 
-@Composable
-fun ArchiveStatRow(
-    iconResId: Int,
-    count: Int,
-    label: String,
-    baseColor: Color,
-    modifier: Modifier = Modifier
-) {
-    val isDark = isSystemInDarkTheme()
-    val resolvedColor = baseColor.toThemeColor(isDark)
-    val cardAlpha = if (isDark) 0.20f else 0.12f
-    val iconBgAlpha = if (isDark) 0.30f else 0.20f
-    Row(
-        modifier = modifier
-            .background(resolvedColor.copy(alpha = cardAlpha), CircleShape)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(resolvedColor.copy(alpha = iconBgAlpha), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = iconResId),
-                contentDescription = null,
-                tint = resolvedColor,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = label,
-            fontSize = 13.5.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f),
-            maxLines = 1
-        )
-        Text(
-            text = "$count",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-fun ClickableRow(title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-        Icon(
-            painter = painterResource(id = R.drawable.ic_custom_chevron_right),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(20.dp)
-        )
-    }
-}
-
-private fun formatStorageSize(bytes: Long): String {
-    if (bytes <= 0L) return "0.0 KB"
-    val kb = bytes / 1024f
-    val mb = kb / 1024f
-    val gb = mb / 1024f
-    return when {
-        gb >= 1.0f -> String.format(Locale.US, "%.1f GB", gb)
-        mb >= 1.0f -> String.format(Locale.US, "%.1f MB", mb)
-        else -> String.format(Locale.US, "%.1f KB", kb)
-    }
-}
