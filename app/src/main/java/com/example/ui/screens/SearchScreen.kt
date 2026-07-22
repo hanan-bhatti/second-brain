@@ -66,6 +66,10 @@ import com.example.data.model.SavedItemType
 import com.example.data.model.getBestImagePath
 import com.example.utils.AnalyticsHelper
 import com.example.utils.DateTimeUtils
+import com.example.utils.getSearchHistory
+import com.example.utils.addQueryToHistory
+import com.example.utils.clearSearchHistory
+import com.example.utils.removeQueryFromHistory
 import com.example.ui.viewmodel.SecondBrainViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
