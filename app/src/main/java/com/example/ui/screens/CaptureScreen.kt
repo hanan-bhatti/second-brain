@@ -300,9 +300,9 @@ fun CaptureScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
+                        @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                        CircularWavyProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -495,7 +495,8 @@ fun CaptureScreen(
                                 .padding(vertical = 32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                            CircularWavyProgressIndicator()
                         }
                     } else if (searchQuery.isNotBlank() && searchResults.isEmpty()) {
                         Box(
@@ -819,9 +820,9 @@ fun CaptureScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator(
+                                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                                CircularWavyProgressIndicator(
                                     modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -954,10 +955,9 @@ fun CaptureScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                CircularProgressIndicator(
+                                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                                CircularWavyProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.5.dp,
-                                    strokeCap = StrokeCap.Round,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(

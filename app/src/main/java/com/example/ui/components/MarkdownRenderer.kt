@@ -49,6 +49,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.commonmark.node.*
 import org.commonmark.parser.Parser
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import com.example.utils.getLayoutDirectionForText
 
 
 /**
@@ -67,12 +70,15 @@ fun MarkdownText(
     val parser = remember { Parser.builder().build() }
     val document = remember(markdown) { parser.parse(markdown) }
     val primaryColor = MaterialTheme.colorScheme.primary
+    val layoutDirection = remember(markdown) { getLayoutDirectionForText(markdown) }
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        RenderNode(document, color, primaryColor, maxLines)
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            RenderNode(document, color, primaryColor, maxLines)
+        }
     }
 }
 
