@@ -471,20 +471,9 @@ fun FoldersScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Pin to top", fontWeight = FontWeight.Medium)
                         }
-                        Switch(
+                        com.example.ui.components.ExpressiveSwitch(
                             checked = newFolderPinned,
-                            onCheckedChange = { newFolderPinned = it },
-                            thumbContent = if (newFolderPinned) {
-                                {
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-                                    )
-                                }
-                            } else {
-                                null
-                            }
+                            onCheckedChange = { newFolderPinned = it }
                         )
                     }
 
@@ -1371,3 +1360,229 @@ fun FolderBrowseItemRow(
 }
 
 
+
+
+@Composable
+fun FolderCustomizerDialog(
+    folder: CustomFolderEntity,
+    viewModel: SecondBrainViewModel,
+    onDismiss: () -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    var folderNameInput by remember { mutableStateOf(folder.name) }
+    var selectedColorHex by remember { mutableStateOf(folder.colorHex ?: folderPresetColors.first().first) }
+    var selectedIconName by remember { mutableStateOf(folder.iconName ?: "folder") }
+    var isPinned by remember { mutableStateOf(folder.isPinned) }
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete Folder") },
+            text = { Text("Are you sure you want to delete the folder \"${folder.name}\"? This won't delete saved items in it, only the folder itself.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteFolder(folder.name)
+                        showDeleteConfirm = false
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Customize Folder", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Rename input
+                    OutlinedTextField(
+                        value = folderNameInput,
+                        onValueChange = { folderNameInput = it },
+                        label = { Text("Folder Name") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().testTag("customize_folder_name_field")
+                    )
+
+                    // Pin toggle
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { isPinned = !isPinned }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_custom_pin),
+                                contentDescription = null,
+                                 tint = if (isPinned) parseHexColor(selectedColorHex, isDark = isDark) else MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Pin to top", fontWeight = FontWeight.Medium)
+                        }
+                        com.example.ui.components.ExpressiveSwitch(
+                            checked = isPinned,
+                            onCheckedChange = { isPinned = it }
+                        )
+                    }
+
+                    // Choose Icon
+                    Column {
+                        Text(
+                            text = "Choose Icon",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Horizontal Icon Grid layout
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            items(folderPresetIcons.size) { index ->
+                                val iconName = folderPresetIcons[index]
+                                val isSelected = selectedIconName == iconName
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isSelected) parseHexColor(selectedColorHex, isDark = isDark).copy(alpha = 0.2f)
+                                            else Color.Transparent
+                                        )
+                                        .border(
+                                            1.5.dp,
+                                            if (isSelected) parseHexColor(selectedColorHex, isDark = isDark)
+                                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                            CircleShape
+                                        )
+                                        .clickable { selectedIconName = iconName },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    FolderIcon(
+                                        iconName = iconName,
+                                        tint = if (isSelected) parseHexColor(selectedColorHex, isDark = isDark) else MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Choose Color
+                    Column {
+                        Text(
+                            text = "Choose Theme Color",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            items(folderPresetColors) { (hex, name) ->
+                                val color = parseHexColor(hex, isDark = isDark)
+                                val isSelected = selectedColorHex == hex
+                                Box(
+                                    modifier = Modifier
+                                        .size(34.dp)
+                                        .clip(CircleShape)
+                                        .background(color)
+                                        .clickable { selectedColorHex = hex },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_custom_check),
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.background,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Delete button
+                    Button(
+                        onClick = { showDeleteConfirm = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().testTag("delete_folder_btn")
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_custom_delete),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Delete Folder")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val finalName = folderNameInput.trim()
+                        if (finalName.isNotEmpty()) {
+                            // 1. Rename folder first if changed
+                            if (finalName != folder.name) {
+                                viewModel.renameFolder(folder.name, finalName)
+                            }
+                            // 2. Save settings
+                            viewModel.updateFolder(
+                                CustomFolderEntity(
+                                    name = finalName,
+                                    colorHex = selectedColorHex,
+                                    iconName = selectedIconName,
+                                    isPinned = isPinned,
+                                    isSynced = folder.isSynced
+                                )
+                            )
+                            onDismiss()
+                        }
+                    },
+                    modifier = Modifier.testTag("save_custom_folder_btn")
+                ) {
+                    Text("Save Changes", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+}
+>>>>>>> main
