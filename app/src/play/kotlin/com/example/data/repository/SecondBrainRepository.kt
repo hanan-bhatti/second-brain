@@ -48,6 +48,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -754,107 +756,109 @@ class SecondBrainRepository(private val context: Context) {
     // something the user just removed.
     suspend fun removeBackup(itemIds: List<String>) = withContext(Dispatchers.IO) {
         val currentUser = firebaseAuth?.currentUser ?: return@withContext
-        for (id in itemIds) {
-            try {
-                val entity = savedItemDao.getItemById(id) ?: continue
-                val item = entity.toDomain()
-                
-                val isMedia = item.type == SavedItemType.IMAGE || item.type == SavedItemType.VIDEO || item.type == SavedItemType.AUDIO
-                val mediaUrl = if (item.type == SavedItemType.AUDIO) item.thumbnailPath else item.content
-                val hasRemoteUrl = !mediaUrl.isNullOrBlank() && (mediaUrl.startsWith("http://") || mediaUrl.startsWith("https://"))
+        itemIds.map { id ->
+            async {
+                try {
+                    val entity = savedItemDao.getItemById(id) ?: return@async
+                    val item = entity.toDomain()
 
-                val localFile = if (isMedia && hasRemoteUrl) {
-                    val extension = when (item.type) {
-                        SavedItemType.VIDEO -> "mp4"
-                        SavedItemType.AUDIO -> "mp4"
-                        else -> "jpg"
-                    }
-                    val fileName = "${item.id}.$extension"
-                    val targetDir = getPermanentMediaDir(item.type)
-                    val destFile = File(targetDir, fileName)
+                    val isMedia = item.type == SavedItemType.IMAGE || item.type == SavedItemType.VIDEO || item.type == SavedItemType.AUDIO
+                    val mediaUrl = if (item.type == SavedItemType.AUDIO) item.thumbnailPath else item.content
+                    val hasRemoteUrl = !mediaUrl.isNullOrBlank() && (mediaUrl.startsWith("http://") || mediaUrl.startsWith("https://"))
 
-                    // Download step
-                    try {
-                        val request = Request.Builder().url(mediaUrl!!).build()
-                        httpClient.newCall(request).execute().use { response ->
-                            if (!response.isSuccessful) {
-                                throw Exception("Server returned HTTP code ${response.code}")
-                            }
-                            val body = response.body ?: throw Exception("Response body is empty")
-                            body.byteStream().use { inputStream ->
-                                FileOutputStream(destFile).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+                    val localFile = if (isMedia && hasRemoteUrl) {
+                        val extension = when (item.type) {
+                            SavedItemType.VIDEO -> "mp4"
+                            SavedItemType.AUDIO -> "mp4"
+                            else -> "jpg"
+                        }
+                        val fileName = "${item.id}.$extension"
+                        val targetDir = getPermanentMediaDir(item.type)
+                        val destFile = File(targetDir, fileName)
+
+                        // Download step
+                        try {
+                            val request = Request.Builder().url(mediaUrl!!).build()
+                            httpClient.newCall(request).execute().use { response ->
+                                if (!response.isSuccessful) {
+                                    throw Exception("Server returned HTTP code ${response.code}")
+                                }
+                                val body = response.body ?: throw Exception("Response body is empty")
+                                body.byteStream().use { inputStream ->
+                                    FileOutputStream(destFile).use { outputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
                                 }
                             }
+                        } catch (downloadEx: Exception) {
+                            Log.e("SecondBrainRepo", "Failed to download media blob for item $id: ${downloadEx.message}")
+                            // Abort for this item to avoid data loss
+                            return@async
                         }
-                    } catch (downloadEx: Exception) {
-                        Log.e("SecondBrainRepo", "Failed to download media blob for item $id: ${downloadEx.message}")
-                        // Abort for this item to avoid data loss
-                        continue
-                    }
-                    destFile
-                } else null
+                        destFile
+                    } else null
 
-                // Update local SavedItemEntity
-                val updatedItem = if (isMedia && localFile != null) {
-                    if (item.type == SavedItemType.AUDIO) {
-                        item.copy(
-                            thumbnailPath = localFile.absolutePath,
-                            isSynced = false,
-                            isPendingBackup = false,
-                            isBackedUp = false
-                        )
+                    // Update local SavedItemEntity
+                    val updatedItem = if (isMedia && localFile != null) {
+                        if (item.type == SavedItemType.AUDIO) {
+                            item.copy(
+                                thumbnailPath = localFile.absolutePath,
+                                isSynced = false,
+                                isPendingBackup = false,
+                                isBackedUp = false
+                            )
+                        } else {
+                            item.copy(
+                                content = localFile.absolutePath,
+                                thumbnailPath = localFile.absolutePath,
+                                isSynced = false,
+                                isPendingBackup = false,
+                                isBackedUp = false
+                            )
+                        }
                     } else {
                         item.copy(
-                            content = localFile.absolutePath,
-                            thumbnailPath = localFile.absolutePath,
                             isSynced = false,
                             isPendingBackup = false,
                             isBackedUp = false
                         )
                     }
-                } else {
-                    item.copy(
-                        isSynced = false,
-                        isPendingBackup = false,
-                        isBackedUp = false
-                    )
-                }
-                savedItemDao.insertItem(updatedItem.toEntity())
+                    savedItemDao.insertItem(updatedItem.toEntity())
 
-                // Delete from Storage if it had a remote URL
-                if (storage != null && hasRemoteUrl) {
-                    try {
-                        val storageRef = storage.getReferenceFromUrl(mediaUrl!!)
-                        storageRef.delete().await()
-                    } catch (storageEx: Exception) {
-                        Log.w("SecondBrainRepo", "Failed to delete storage blob for item $id: ${storageEx.message}")
-                    }
-                }
-
-                // Update Firestore document (Tombstone)
-                if (firestore != null) {
-                    val docRef = firestore.collection("users").document(currentUser.uid)
-                        .collection("items").document(id)
-                    
-                    val updateMap = mutableMapOf<String, Any?>(
-                        "isBackedUp" to false,
-                        "timestamp" to System.currentTimeMillis()
-                    )
-                    if (item.type == SavedItemType.AUDIO) {
-                        updateMap["thumbnailPath"] = ""
-                    } else if (isMedia) {
-                        updateMap["content"] = ""
-                        updateMap["thumbnailPath"] = ""
+                    // Delete from Storage if it had a remote URL
+                    if (storage != null && hasRemoteUrl) {
+                        try {
+                            val storageRef = storage.getReferenceFromUrl(mediaUrl!!)
+                            storageRef.delete().await()
+                        } catch (storageEx: Exception) {
+                            Log.w("SecondBrainRepo", "Failed to delete storage blob for item $id: ${storageEx.message}")
+                        }
                     }
 
-                    docRef.update(updateMap).await()
-                }
+                    // Update Firestore document (Tombstone)
+                    if (firestore != null) {
+                        val docRef = firestore.collection("users").document(currentUser.uid)
+                            .collection("items").document(id)
 
-            } catch (e: Exception) {
-                Log.e("SecondBrainRepo", "Failed to remove backup for item $id: ${e.message}")
+                        val updateMap = mutableMapOf<String, Any?>(
+                            "isBackedUp" to false,
+                            "timestamp" to System.currentTimeMillis()
+                        )
+                        if (item.type == SavedItemType.AUDIO) {
+                            updateMap["thumbnailPath"] = ""
+                        } else if (isMedia) {
+                            updateMap["content"] = ""
+                            updateMap["thumbnailPath"] = ""
+                        }
+
+                        docRef.update(updateMap).await()
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("SecondBrainRepo", "Failed to remove backup for item $id: ${e.message}")
+                }
             }
-        }
+        }.awaitAll()
     }
 
     private fun getFolderDocId(folderName: String): String {
